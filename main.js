@@ -19,6 +19,9 @@ let prevTime = performance.now();
 const PLAYER_HEIGHT = 1.7;
 const MOVEMENT_SPEED = 12.0;
 
+// Texture Loader (Untuk memuat gambar)
+const textureLoader = new THREE.TextureLoader();
+
 // --- INIT & LOOP UTAMA ---
 init();
 animate();
@@ -76,15 +79,16 @@ function createEnvironment() {
   const grid = new THREE.GridHelper(25, 25, 0x333333, 0x222222);
   scene.add(grid);
 
-  // C. Stand Batik (Memanggil fungsi reusable)
-  createBatikDisplay(0, -6, "Batik Parang"); // Depan
-  createBatikDisplay(-6, -2, "Batik Kawung"); // Kiri
-  createBatikDisplay(6, -2, "Batik Megamendung"); // Kanan
+  // C. Stand Batik
+  // Pastikan file gambar ada di folder yang sama
+  createBatikDisplay(0, -6, "Batik Parang", "assets/ParangBatik.jpg"); // Depan
+  createBatikDisplay(-6, -2, "Batik Kawung", "assets/kawungbatik.jpg"); // Kiri
+  createBatikDisplay(6, -2, "Batik Megamendung", "assets/batikmegamendung.jpg"); // Kanan
 }
 
 function setupLighting() {
-  // Cahaya dasar
-  const ambient = new THREE.AmbientLight(0xffffff, 0.3);
+  // Cahaya dasar (Ambient) - Sedikit dinaikkan agar tekstur lebih jelas
+  const ambient = new THREE.AmbientLight(0xffffff, 0.5); 
   scene.add(ambient);
 
   // Lampu ruangan
@@ -94,7 +98,7 @@ function setupLighting() {
 }
 
 // --- FUNGSI MEMBUAT STAND BATIK (REUSABLE) ---
-function createBatikDisplay(x, z, labelName) {
+function createBatikDisplay(x, z, labelName, textureFileName) {
   const group = new THREE.Group();
 
   // 1. Podium
@@ -129,14 +133,29 @@ function createBatikDisplay(x, z, labelName) {
   palangAtas.position.set(0, 2.3, 0);
   group.add(palangAtas);
 
-  // 3. Kain Batik (Tempat mencanting nanti)
+  // 3. Kain Batik (DIPERBAIKI WARNA & POSISINYA)
   const kainGeo = new THREE.PlaneGeometry(0.9, 1.4);
+  
+  // Load Texture
+  const batikTexture = textureLoader.load(textureFileName);
+  batikTexture.colorSpace = THREE.SRGBColorSpace; 
+  
+  // -- FIX: Membalik tekstur agar tidak mirror/terbalik --
+  batikTexture.wrapS = THREE.RepeatWrapping;
+  batikTexture.repeat.x = -1; 
+  batikTexture.offset.x = 1; 
+
   const kainMat = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
+    map: batikTexture,
+    color: 0xffffff,    // Warna dasar putih bersih (netral)
     side: THREE.DoubleSide,
+    roughness: 1.0,     // Full roughness (Matte) agar tidak mengkilap/keputihan
+    metalness: 0.0      // Tidak ada efek metal
   });
+  
   const kain = new THREE.Mesh(kainGeo, kainMat);
   kain.position.set(0, 1.55, 0);
+  kain.castShadow = true;
   group.add(kain);
 
   // 4. Spotlight
