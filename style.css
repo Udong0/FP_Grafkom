@@ -1,0 +1,72 @@
+/* Reset CSS dasar */
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #000;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Titik Tengah (Crosshair) untuk membidik */
+#crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background-color: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  pointer-events: none;
+  mix-blend-mode: difference; /* Agar terlihat kontras di background apapun */
+}
+
+/* Layar Instruksi / Blocker */
+#blocker {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75); /* Latar belakang transparan gelap */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+  z-index: 100;
+}
+
+#instructions {
+  text-align: center;
+  cursor: pointer;
+  padding: 30px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  transition: background-color 0.3s;
+}
+
+#instructions:hover {
+  background-color: rgba(50, 50, 50, 0.8);
+  border-color: white;
+}
+
+h1 {
+  margin: 0 0 15px 0;
+  font-size: 32px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+p {
+  margin: 8px 0;
+  font-size: 16px;
+  color: #ddd;
+}
+
+.key {
+  color: #ffaa00;
+  font-weight: bold;
+  background: #333;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
