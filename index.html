@@ -4,9 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Museum Batik Virtual - Final Project</title>
-
     <link rel="stylesheet" href="style.css" />
-
     <script type="importmap">
       {
         "imports": {
@@ -26,8 +24,73 @@
         <br />
         <p>Gerak: <span class="key">W, A, S, D</span></p>
         <p>Arah Pandang: <span class="key">Mouse</span></p>
+        <p>Interaksi: <span class="key">Klik Kiri</span> pada Batik</p>
         <p>Keluar/Pause: <span class="key">ESC</span></p>
       </div>
+    </div>
+
+    <div id="popup-overlay" style="display: none;">
+      <div id="popup-container">
+        <div class="popup-content">
+          <div class="popup-left">
+            <img id="popup-img" src="" alt="Gambar Batik" />
+          </div>
+          <div class="popup-right">
+            <h2 id="popup-title"></h2>
+            <div id="popup-desc"></div>
+          </div>
+        </div>
+        <button id="close-btn">Tutup</button>
+      </div>
+    </div>
+
+    <div id="batik-data-source" style="display: none;">
+      
+      <div id="info-parang">
+        <span class="data-title">Batik Parang</span>
+        <div class="data-desc">
+          <p>Batik Parang adalah salah satu motif batik klasik Indonesia yang berbentuk garis diagonal menyerupai gelombang atau huruf S berulang. Motif ini berasal dari kerajaan Mataram.</p>
+          <p><strong>Maknanya:</strong></p>
+          <ul>
+            <li>Kekuatan dan keteguhan</li>
+            <li>Semangat hidup yang tidak pernah berhenti</li>
+            <li>Perjuangan dan keberanian</li>
+            <li>Pengendalian diri</li>
+          </ul>
+          <p>Motif ini dulu hanya dipakai bangsawan dan keluarga kerajaan. Hingga sekarang, Parang menjadi simbol kebijaksanaan, wibawa, dan kekuatan karakter.</p>
+        </div>
+      </div>
+
+      <div id="info-kawung">
+        <span class="data-title">Batik Kawung</span>
+        <div class="data-desc">
+          <p>Batik Kawung adalah motif batik klasik yang berbentuk empat elips (lonjong) simetris menyerupai buah aren atau kolang-kaling. Motif ini merupakan salah satu motif tertua di Jawa.</p>
+          <p><strong>Maknanya:</strong></p>
+          <ul>
+            <li>Kesucian dan kemurnian hati</li>
+            <li>Kendali diri dan kebijaksanaan</li>
+            <li>Keteraturan dan keharmonisan hidup</li>
+            <li>Kerendahan hati (karena terinspirasi dari pohon aren yang semuanya bermanfaat)</li>
+          </ul>
+          <p>Dulu, motif Kawung sering dipakai keluarga kerajaan sebagai simbol pengendalian diri dan keadilan. Hingga kini, Kawung dikenal sebagai motif batik yang sederhana namun sangat penuh filosofi.</p>
+        </div>
+      </div>
+
+      <div id="info-megamendung">
+        <span class="data-title">Batik Megamendung</span>
+        <div class="data-desc">
+          <p>Batik Megamendung adalah motif batik khas Cirebon yang berbentuk awan berlapis-lapis dengan warna gradasi, biasanya biru, merah, atau ungu.</p>
+          <p><strong>Maknanya:</strong></p>
+          <ul>
+            <li>Ketenangan dan kesabaran seperti awan yang membawa kesejukan</li>
+            <li>Keluasan pikiran dan sikap bijak</li>
+            <li>Kedamaian dan keseimbangan</li>
+            <li>Pengaruh budaya Tiongkok yang kuat dalam seni Cirebon</li>
+          </ul>
+          <p>Motif ini menjadi ikon Cirebon karena warna dan bentuk awannya yang unik serta filosofinya yang menekankan ketenangan hati.</p>
+        </div>
+      </div>
+
     </div>
 
     <script type="module" src="main.js"></script>

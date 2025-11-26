@@ -1,4 +1,4 @@
-/* Reset CSS dasar */
+/* ... (CSS template asli tetap sama, jangan dihapus) ... */
 body {
   margin: 0;
   overflow: hidden;
@@ -6,7 +6,6 @@ body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Titik Tengah (Crosshair) untuk membidik */
 #crosshair {
   position: absolute;
   top: 50%;
@@ -18,15 +17,14 @@ body {
   transform: translate(-50%, -50%);
   z-index: 50;
   pointer-events: none;
-  mix-blend-mode: difference; /* Agar terlihat kontras di background apapun */
+  mix-blend-mode: difference;
 }
 
-/* Layar Instruksi / Blocker */
 #blocker {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.75); /* Latar belakang transparan gelap */
+  background-color: rgba(0, 0, 0, 0.75);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -69,4 +67,97 @@ p {
   background: #333;
   padding: 2px 6px;
   border-radius: 4px;
+}
+
+/* --- STYLE UNTUK POPUP (BARU) --- */
+#popup-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85); /* Gelap transparan */
+  display: flex; /* Untuk centering */
+  justify-content: center;
+  align-items: center;
+  z-index: 200; /* Di atas blocker */
+}
+
+#popup-container {
+  width: 800px;
+  max-width: 90%;
+  background-color: #222;
+  border: 2px solid #ffaa00;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  box-shadow: 0 0 30px rgba(0,0,0,1);
+}
+
+.popup-content {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  max-height: 60vh;
+}
+
+.popup-left {
+  flex: 1;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #444;
+}
+
+.popup-left img {
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+}
+
+.popup-right {
+  flex: 1.5;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.popup-right h2 {
+  color: #ffaa00;
+  border-bottom: 1px solid #555;
+  padding-bottom: 10px;
+  margin-top: 0;
+}
+
+#popup-desc {
+  line-height: 1.6;
+  font-size: 14px;
+  white-space: pre-line; /* Agar baris baru terbaca */
+}
+
+#popup-desc ul {
+  padding-left: 20px;
+  margin: 10px 0;
+}
+
+#popup-desc li {
+  margin-bottom: 5px;
+}
+
+#close-btn {
+  align-self: center; /* Tombol di tengah bawah container */
+  padding: 10px 40px;
+  background-color: #ffaa00;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+#close-btn:hover {
+  background-color: #e6b800;
 }
