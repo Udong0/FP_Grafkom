@@ -5,10 +5,8 @@ import { PointerLockControls } from "three/addons/controls/PointerLockControls.j
 let camera, scene, renderer, controls;
 
 // Variabel Gerakan
-let moveForward = false,
-  moveBackward = false;
-let moveLeft = false,
-  moveRight = false;
+let moveForward = false, moveBackward = false;
+let moveLeft = false, moveRight = false;
 
 // Fisika Sederhana
 const velocity = new THREE.Vector3();
@@ -19,52 +17,44 @@ let prevTime = performance.now();
 const PLAYER_HEIGHT = 1.7;
 const MOVEMENT_SPEED = 12.0;
 
-// Texture Loader (Untuk memuat gambar)
+// Texture Loader
 const textureLoader = new THREE.TextureLoader();
 
-// --- INIT & LOOP UTAMA ---
+// Interaksi
+let raycaster;
+const interactableObjects = [];
+
 init();
 animate();
 
 function init() {
-  // 1. Setup Scene
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x101010);
-  scene.fog = new THREE.Fog(0x101010, 0, 35); // Efek kabut
+  scene.fog = new THREE.Fog(0x101010, 0, 35);
 
-  // 2. Setup Camera
-  camera = new THREE.PerspectiveCamera(
-    60,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    100
-  );
+  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
   camera.position.y = PLAYER_HEIGHT;
-  camera.position.z = 8; // Posisi awal pemain
+  camera.position.z = 8;
 
-  // 3. Setup Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.shadowMap.enabled = true; // Aktifkan bayangan
+  renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   document.body.appendChild(renderer.domElement);
 
-  // 4. Setup Lighting
+  raycaster = new THREE.Raycaster();
+
   setupLighting();
-
-  // 5. Setup Environment
   createEnvironment();
-
-  // 6. Setup Controls
   setupControls();
+  setupPopupEvents();
 
-  // 7. Handle Resize Window
   window.addEventListener("resize", onWindowResize);
+  document.addEventListener("click", onMouseClick);
 }
 
-// --- FUNGSI LINGKUNGAN ---
 function createEnvironment() {
-  // A. Ruangan Museum
+  // Ruangan
   const roomGeo = new THREE.BoxGeometry(25, 12, 25);
   const roomMat = new THREE.MeshStandardMaterial({
     color: 0x606060,
@@ -75,33 +65,30 @@ function createEnvironment() {
   room.receiveShadow = true;
   scene.add(room);
 
-  // B. Lantai Grid (Opsional)
+  // Lantai
   const grid = new THREE.GridHelper(25, 25, 0x333333, 0x222222);
   scene.add(grid);
 
-  // C. Stand Batik
-  // Pastikan file gambar ada di folder yang sama
-  createBatikDisplay(0, -6, "Batik Parang", "assets/ParangBatik.jpg"); // Depan
-  createBatikDisplay(-6, -2, "Batik Kawung", "assets/kawungbatik.jpg"); // Kiri
-  createBatikDisplay(6, -2, "Batik Megamendung", "assets/batikmegamendung.jpg"); // Kanan
+  // --- PEMBUATAN BATIK DENGAN ID HTML ---
+  // Parameter ke-3 adalah ID dari elemen <div> di index.html yang berisi deskripsinya
+  createBatikDisplay(0, -6, "info-parang", "assets/Parangbatik.jpg"); 
+  createBatikDisplay(-6, -2, "info-kawung", "assets/kawungbatik.jpg");
+  createBatikDisplay(6, -2, "info-megamendung", "assets/batikmegamendung.jpg");
 }
 
 function setupLighting() {
-  // Cahaya dasar (Ambient) - Sedikit dinaikkan agar tekstur lebih jelas
-  const ambient = new THREE.AmbientLight(0xffffff, 0.5); 
+  const ambient = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambient);
-
-  // Lampu ruangan
   const mainLight = new THREE.PointLight(0xffffff, 0.5, 30);
   mainLight.position.set(0, 10, 0);
   scene.add(mainLight);
 }
 
-// --- FUNGSI MEMBUAT STAND BATIK (REUSABLE) ---
-function createBatikDisplay(x, z, labelName, textureFileName) {
+// Perhatikan parameter ke-3 sekarang adalah 'htmlId'
+function createBatikDisplay(x, z, htmlId, textureFileName) {
   const group = new THREE.Group();
 
-  // 1. Podium
+  // Podium
   const podium = new THREE.Mesh(
     new THREE.BoxGeometry(1.2, 0.6, 1.2),
     new THREE.MeshStandardMaterial({ color: 0x2a2a2a })
@@ -111,10 +98,10 @@ function createBatikDisplay(x, z, labelName, textureFileName) {
   podium.receiveShadow = true;
   group.add(podium);
 
-  // 2. Gawangan (Tiang Kayu)
+  // Gawangan (Tiang)
   const woodMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21 });
   const tiangGeo = new THREE.CylinderGeometry(0.04, 0.04, 2);
-
+  
   const tiangKiri = new THREE.Mesh(tiangGeo, woodMat);
   tiangKiri.position.set(-0.5, 1.3, 0);
   tiangKiri.castShadow = true;
@@ -125,40 +112,43 @@ function createBatikDisplay(x, z, labelName, textureFileName) {
   tiangKanan.castShadow = true;
   group.add(tiangKanan);
 
-  const palangAtas = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.03, 0.03, 1.2),
-    woodMat
-  );
+  const palangAtas = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.2), woodMat);
   palangAtas.rotation.z = Math.PI / 2;
   palangAtas.position.set(0, 2.3, 0);
   group.add(palangAtas);
 
-  // 3. Kain Batik (DIPERBAIKI WARNA & POSISINYA)
+  // Kain Batik
   const kainGeo = new THREE.PlaneGeometry(0.9, 1.4);
-  
-  // Load Texture
   const batikTexture = textureLoader.load(textureFileName);
-  batikTexture.colorSpace = THREE.SRGBColorSpace; 
-  
-  // -- FIX: Membalik tekstur agar tidak mirror/terbalik --
+  batikTexture.colorSpace = THREE.SRGBColorSpace;
   batikTexture.wrapS = THREE.RepeatWrapping;
-  batikTexture.repeat.x = -1; 
-  batikTexture.offset.x = 1; 
+  batikTexture.repeat.x = -1;
+  batikTexture.offset.x = 1;
 
   const kainMat = new THREE.MeshStandardMaterial({
     map: batikTexture,
-    color: 0xffffff,    // Warna dasar putih bersih (netral)
+    color: 0xffffff,
     side: THREE.DoubleSide,
-    roughness: 1.0,     // Full roughness (Matte) agar tidak mengkilap/keputihan
-    metalness: 0.0      // Tidak ada efek metal
+    roughness: 1.0,
+    metalness: 0.0
   });
-  
+
   const kain = new THREE.Mesh(kainGeo, kainMat);
   kain.position.set(0, 1.55, 0);
   kain.castShadow = true;
+
+  // SIMPAN DATA UNTUK POPUP
+  // Kita menyimpan htmlId agar nanti bisa dicari elemennya
+  kain.userData = { 
+    isBatik: true, 
+    contentId: htmlId,      // ID div di HTML
+    imgSrc: textureFileName // Path gambar
+  };
+  
+  interactableObjects.push(kain);
   group.add(kain);
 
-  // 4. Spotlight
+  // Lampu Sorot
   const spotLight = new THREE.SpotLight(0xffaa00, 15);
   spotLight.position.set(0, 5, 2);
   spotLight.target = kain;
@@ -167,17 +157,14 @@ function createBatikDisplay(x, z, labelName, textureFileName) {
   spotLight.castShadow = true;
   group.add(spotLight);
 
-  // Posisikan Group
   group.position.set(x, 0, z);
-  group.lookAt(0, 0, 8); // Menghadap ke tengah/pemain
+  group.lookAt(0, 0, 8);
 
   scene.add(group);
 }
 
-// --- FUNGSI KONTROL ---
 function setupControls() {
   controls = new PointerLockControls(camera, document.body);
-
   const blocker = document.getElementById("blocker");
   const instructions = document.getElementById("instructions");
 
@@ -189,30 +176,69 @@ function setupControls() {
   });
 
   controls.addEventListener("unlock", () => {
-    blocker.style.display = "flex";
-    instructions.style.display = "";
+    const popup = document.getElementById("popup-overlay");
+    if (popup.style.display === "none") {
+      blocker.style.display = "flex";
+      instructions.style.display = "";
+    }
   });
 
   scene.add(controls.getObject());
-
   document.addEventListener("keydown", (e) => onKeyChange(e, true));
   document.addEventListener("keyup", (e) => onKeyChange(e, false));
 }
 
+function onMouseClick() {
+  if (controls.isLocked) {
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+    const intersects = raycaster.intersectObjects(interactableObjects);
+
+    if (intersects.length > 0) {
+      const object = intersects[0].object;
+      if (object.userData.isBatik) {
+        showPopup(object.userData);
+      }
+    }
+  }
+}
+
+// FUNGSI MENAMPILKAN POPUP DARI SUMBER HTML
+function showPopup(userData) {
+  controls.unlock();
+
+  // 1. Ambil elemen sumber dari HTML berdasarkan ID
+  const sourceContent = document.getElementById(userData.contentId);
+
+  if (sourceContent) {
+    // 2. Ambil data dari sumber
+    const titleText = sourceContent.querySelector(".data-title").innerText;
+    const descHTML = sourceContent.querySelector(".data-desc").innerHTML;
+
+    // 3. Masukkan ke Popup Overlay
+    document.getElementById("popup-title").innerText = titleText;
+    document.getElementById("popup-desc").innerHTML = descHTML; // Pakai innerHTML agar list/bold terbaca
+    document.getElementById("popup-img").src = userData.imgSrc;
+
+    // 4. Tampilkan
+    document.getElementById("popup-overlay").style.display = "flex";
+  } else {
+    console.error("Data HTML tidak ditemukan untuk ID:", userData.contentId);
+  }
+}
+
+function setupPopupEvents() {
+  document.getElementById("close-btn").addEventListener("click", () => {
+    document.getElementById("popup-overlay").style.display = "none";
+    controls.lock();
+  });
+}
+
 function onKeyChange(event, isPressed) {
   switch (event.code) {
-    case "KeyW":
-      moveForward = isPressed;
-      break;
-    case "KeyA":
-      moveLeft = isPressed;
-      break;
-    case "KeyS":
-      moveBackward = isPressed;
-      break;
-    case "KeyD":
-      moveRight = isPressed;
-      break;
+    case "KeyW": moveForward = isPressed; break;
+    case "KeyA": moveLeft = isPressed; break;
+    case "KeyS": moveBackward = isPressed; break;
+    case "KeyD": moveRight = isPressed; break;
   }
 }
 
@@ -222,31 +248,23 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-// --- LOGIKA ANIMASI & UPDATE ---
 function animate() {
   requestAnimationFrame(animate);
-
   const time = performance.now();
   const delta = (time - prevTime) / 1000;
 
   if (controls.isLocked) {
-    // Logika Fisika Gerakan
-    velocity.x -= velocity.x * 10.0 * delta; // Friksi
+    velocity.x -= velocity.x * 10.0 * delta;
     velocity.z -= velocity.z * 10.0 * delta;
-
     direction.z = Number(moveForward) - Number(moveBackward);
     direction.x = Number(moveRight) - Number(moveLeft);
     direction.normalize();
 
-    if (moveForward || moveBackward)
-      velocity.z -= direction.z * MOVEMENT_SPEED * delta;
-    if (moveLeft || moveRight)
-      velocity.x -= direction.x * MOVEMENT_SPEED * delta;
+    if (moveForward || moveBackward) velocity.z -= direction.z * MOVEMENT_SPEED * delta;
+    if (moveLeft || moveRight) velocity.x -= direction.x * MOVEMENT_SPEED * delta;
 
     controls.moveRight(-velocity.x * delta);
     controls.moveForward(-velocity.z * delta);
-
-    // Batas lantai
     controls.getObject().position.y = PLAYER_HEIGHT;
   }
 
