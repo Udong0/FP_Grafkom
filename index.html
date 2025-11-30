@@ -38,10 +38,23 @@
           <div class="popup-right">
             <h2 id="popup-title"></h2>
             <div id="popup-desc"></div>
+            
+            <br>
+            <button id="start-game-btn" class="action-btn" style="margin-top: 10px; padding: 10px 20px; background: #ffaa00; border: none; cursor: pointer; font-weight: bold; border-radius: 5px;">Mulai Mencanting</button>
+            
           </div>
         </div>
         <button id="close-btn">Tutup</button>
       </div>
+    </div>
+
+    <div id="chanting-ui" style="display: none; position: absolute; bottom: 30px; width: 100%; text-align: center; pointer-events: none; z-index: 999;">
+        <div style="background: rgba(0,0,0,0.7); padding: 15px; display: inline-block; border-radius: 10px; pointer-events: auto; border: 1px solid #ffaa00;">
+            <p style="margin: 0 0 10px 0; color: white; font-weight: bold; font-size: 18px;">Mode Mencanting</p>
+            <p style="margin: 0 0 15px 0; color: #ccc; font-size: 14px;">Tahan Klik Kiri & Gerakkan Mouse untuk Menggambar</p>
+            
+            <button id="finish-chanting-btn" class="action-btn" style="padding: 10px 20px; background: #ffaa00; border: none; cursor: pointer; font-weight: bold; border-radius: 5px;">Selesai / Kembali</button>
+        </div>
     </div>
 
     <div id="batik-data-source" style="display: none;">
@@ -90,7 +103,6 @@
           <p>Motif ini menjadi ikon Cirebon karena warna dan bentuk awannya yang unik serta filosofinya yang menekankan ketenangan hati.</p>
         </div>
       </div>
-
     </div>
 
     <script type="module" src="main.js"></script>
