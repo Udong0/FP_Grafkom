@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 import { startChanting, stopChanting, handleDrawing, isGameActive } from "./game.js";
-
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 // --- VARIABEL GLOBAL ---
 let camera, scene, renderer, controls;
 let moveForward = false, moveBackward = false;
@@ -17,6 +17,32 @@ const MOVEMENT_SPEED = 50.0;
 const textureLoader = new THREE.TextureLoader();
 let raycaster;
 const interactableObjects = []; 
+
+// --- SETUP LOADER MODEL 3D ---
+const gltfLoader = new GLTFLoader();
+
+function load3DModel(path, x, y, z, scale, rotationY) {
+    gltfLoader.load(
+        path, 
+        (gltf) => {
+            const model = gltf.scene;
+            model.position.set(x, y, z);
+            model.scale.set(scale, scale, scale); // Mengatur besar/kecil model
+            model.rotation.y = rotationY;         // Mengatur arah hadap
+
+            // Agar model terkena bayangan lampu
+            model.traverse((node) => {
+                if (node.isMesh) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                }
+            });
+            scene.add(model);
+        },
+        undefined, 
+        (error) => { console.error('Gagal memuat model:', path, error); }
+    );
+}
 
 init();
 animate();
@@ -103,14 +129,54 @@ function createEnvironment() {
 
     // --- D. PAJANGAN BATIK ---
     
-    // 1. Belakang (Parang)
+   // --- 1. DINDING BELAKANG (Z = -24.5) ---
+    // Rotasi 0 (Menghadap depan)
+    // Kita sebar 3 batik: Kiri, Tengah, Kanan
+    
+    // Tengah (Pusat perhatian)
     createBatikDisplay(0, 4, -24.5, "info-parang", "assets/Parangbatik.jpg", 0); 
     
-    // 2. Kiri (Kawung)
-    createBatikDisplay(-24.5, 4, 0, "info-kawung", "assets/kawungbatik.jpg", Math.PI / 2);
+    // Geser ke Kiri (-12)
+    createBatikDisplay(-12, 4, -24.5, "info-Ceplokbatik", "assets/Ceplokbatik.jpg", 0);
+
+    // Geser ke Kanan (+12)
+    createBatikDisplay(12, 4, -24.5, "info-Lerengbatik", "assets/Lerengbatik.jpg", 0);
+
+
+    // --- 2. DINDING KIRI (X = -24.5) ---
+    // Rotasi Math.PI / 2 (Menghadap kanan)
+    // Kita sebar 4 batik berjejer dari belakang ke depan
     
-    // 3. Kanan (Megamendung)
-    createBatikDisplay(24.5, 4, 0, "info-megamendung", "assets/batikmegamendung.jpg", -Math.PI / 2);
+    // Posisi Z: -15 (Agak belakang)
+    createBatikDisplay(-24.5, 4, -15, "info-kawung", "assets/kawungbatik.jpg", Math.PI / 2);
+    
+    // Posisi Z: -5
+    createBatikDisplay(-24.5, 4, -5, "info-Nitikbatik", "assets/Nitikbatik.jpg", Math.PI / 2);
+    
+    // Posisi Z: 5
+    createBatikDisplay(-24.5, 4, 5, "info-ParangRusakbatik", "assets/ParangRusakbatik.jpg", Math.PI / 2);
+    
+    // Posisi Z: 15 (Agak depan)
+    createBatikDisplay(-24.5, 4, 15, "info-SekarJagadbatik", "assets/SekarJagadbatik.jpg", Math.PI / 2);
+
+
+    // --- 3. DINDING KANAN (X = 24.5) ---
+    // Rotasi -Math.PI / 2 (Menghadap kiri)
+    // Kita sebar 4 batik sisanya berjejer dari belakang ke depan
+    
+    // Posisi Z: -15
+    createBatikDisplay(24.5, 4, -15, "info-megamendung", "assets/batikmegamendung.jpg", -Math.PI / 2);
+
+    // Posisi Z: -5
+    createBatikDisplay(24.5, 4, -5, "info-Semenbatik", "assets/Semenbatik.jpg", -Math.PI / 2);
+
+    // Posisi Z: 5
+    createBatikDisplay(24.5, 4, 5, "info-Tambalbatik", "assets/Tambalbatik.jpg", -Math.PI / 2);
+
+    // Posisi Z: 15
+    createBatikDisplay(24.5, 4, 15, "info-Truntumbatik", "assets/Truntumbatik.jpg", -Math.PI / 2);
+
+    load3DModel("assets/Manequin_batik.glb", -22, 0, -22, 2, Math.PI / 4);
 }
 
 function createCeilingLamp(x, z) {
