@@ -176,7 +176,7 @@ function createEnvironment() {
     // Posisi Z: 15
     createBatikDisplay(24.5, 4, 15, "info-Truntumbatik", "assets/Truntumbatik.jpg", -Math.PI / 2);
 
-    load3DModel("assets/Manequin_batik.glb", -22, 0, -22, 2, Math.PI / 4);
+    load3DModel("assets/Manequin_batik.glb", -22, 0, -22, 0.5, Math.PI / 4);
 }
 
 function createCeilingLamp(x, z) {
