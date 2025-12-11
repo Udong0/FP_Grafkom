@@ -184,3 +184,122 @@ p {
 #chanting-ui {
   z-index: 300;
 }
+
+#canting-station-ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 500;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.paint-container {
+    background: #2e2e2e;
+    border: 3px solid #ffaa00;
+    border-radius: 10px;
+    width: 900px;
+    max-width: 95%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+
+.paint-header {
+    background: #ffaa00;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.paint-header h2 {
+    color: #000;
+    margin: 0;
+    font-size: 20px;
+}
+
+.close-btn {
+    background: red;
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 3px;
+}
+
+.paint-body {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    height: 500px;
+}
+
+.paint-tools, .paint-patterns {
+    flex: 1;
+    color: #ddd;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.canvas-wrapper {
+    background: #fff; /* Warna dasar kain */
+    border: 2px dashed #999;
+}
+
+#batikCanvas {
+    cursor: crosshair;
+    background-color: white;
+}
+
+.tool-btn {
+    padding: 10px;
+    background: #444;
+    color: white;
+    border: 1px solid #666;
+    cursor: pointer;
+    text-align: left;
+}
+
+.tool-btn:hover, .tool-btn.active {
+    background: #ffaa00;
+    color: black;
+}
+
+.color-palette {
+    display: flex;
+    gap: 10px;
+}
+
+.color-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    cursor: pointer;
+}
+
+.pattern-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    overflow-y: auto;
+}
+
+.pattern-grid img {
+    width: 100%;
+    height: 80px;
+    object-fit: cover;
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+
+.pattern-grid img:hover, .pattern-grid img.selected {
+    border-color: #ffaa00;
+}

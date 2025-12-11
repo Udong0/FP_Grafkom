@@ -57,6 +57,50 @@
         </div>
     </div>
 
+    <div id="canting-station-ui" style="display: none;">
+            <div class="paint-container">
+                <div class="paint-header">
+                    <h2>Meja Canting Virtual</h2>
+                    <button id="close-canting" class="close-btn">X</button>
+                </div>
+                
+                <div class="paint-body">
+                    <div class="paint-tools">
+                        <h3>Alat</h3>
+                        <button class="tool-btn active" onclick="setTool('brush')">🖌️ Canting (Tulis)</button>
+                        <button class="tool-btn" onclick="setTool('eraser')">🧽 Penghapus</button>
+                        <button class="tool-btn" onclick="clearCanvas()">🗑️ Bersihkan Kain</button>
+                        
+                        <h3>Ukuran Canting</h3>
+                        <input type="range" id="brushSize" min="1" max="20" value="5">
+                        
+                        <h3>Warna Malam</h3>
+                        <div class="color-palette">
+                            <div class="color-swatch" style="background:#3d2b1f" onclick="setColor('#3d2b1f')"></div> <div class="color-swatch" style="background:#ffaa00" onclick="setColor('#ffaa00')"></div> <div class="color-swatch" style="background:#000000" onclick="setColor('#000000')"></div> <div class="color-swatch" style="background:#ffffff" onclick="setColor('#ffffff')"></div> </div>
+                    </div>
+
+                    <div class="canvas-wrapper">
+                        <canvas id="batikCanvas" width="500" height="500"></canvas>
+                    </div>
+
+                    <div class="paint-patterns">
+                        <h3>Pola Cap (Stempel)</h3>
+                        <p>Klik gambar lalu klik di kain untuk menempel.</p>
+                        <div class="pattern-grid">
+                            <img src="assets/Parangbatik.jpg" onclick="selectPattern(this)" alt="Parang">
+                            <img src="assets/kawungbatik.jpg" onclick="selectPattern(this)" alt="Kawung">
+                            <img src="assets/batikmegamendung.jpg" onclick="selectPattern(this)" alt="Mega Mendung">
+                            <img src="assets/Ceplokbatik.jpg" onclick="selectPattern(this)" alt="Ceplok">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="paint-footer">
+                    <button class="action-btn" onclick="saveBatik()">Simpan Karya</button>
+                </div>
+            </div>
+        </div>
+
 <div id="batik-data-source" style="display: none;">
       
       <div id="info-parang">
