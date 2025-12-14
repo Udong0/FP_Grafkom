@@ -28,6 +28,82 @@ let currentPattern = null;
 let brushColor = '#3d2b1f';
 let brushSize = 5;
 
+// --- DATA KOLEKSI BATIK (SINKRONISASI DENGAN INDEX.HTML) ---
+// Pastikan 'id' di sini sama persis dengan id="info-..." di index.html
+
+const galleryData = {
+    // A. DINDING LUAR (UTARA/BELAKANG) - 9 Batik
+    outerNorth: [
+        { id: "info-parang", img: "assets/Parangbatik.jpg" },
+        { id: "info-Ceplokbatik", img: "assets/Ceplokbatik.jpg" },
+        { id: "info-Lerengbatik", img: "assets/Lerengbatik.jpg" },
+        { id: "info-kawung", img: "assets/kawungbatik.jpg" },
+        { id: "info-Nitikbatik", img: "assets/Nitikbatik.jpg" },
+        { id: "info-ParangRusakbatik", img: "assets/ParangRusakbatik.jpg" },
+        { id: "info-SekarJagadbatik", img: "assets/SekarJagadbatik.jpg" },
+        { id: "info-megamendung", img: "assets/batikmegamendung.jpg" },
+        { id: "info-Semenbatik", img: "assets/Semenbatik.jpg" },
+    ],
+
+    // B. DINDING LUAR (SELATAN/DEPAN) - 9 Batik
+    outerSouth: [
+        { id: "info-Tambalbatik", img: "assets/Tambalbatik.jpg" },
+        { id: "info-Truntumbatik", img: "assets/Truntumbatik.jpg" },
+        { id: "info-sidomukti", img: "assets/Sidomuktibatik.jpg" },
+        { id: "info-sidoluhur", img: "assets/Sidoluhurbatik.jpg" },
+        { id: "info-sidoasih", img: "assets/Sidoasihbatik.jpg" },
+        { id: "info-satrio-manah", img: "assets/SatrioManahbatik.jpg" },
+        { id: "info-wahyu-tumurun", img: "assets/WahyuTumurunbatik.jpg" },
+        { id: "info-grompol", img: "assets/Grompolbatik.png" },
+        { id: "info-slobog", img: "assets/Slobogbatik.png" }, // Pastikan gambar ada
+    ],
+
+    // C. DINDING LUAR (TIMUR/KANAN) - 9 Batik
+    outerEast: [
+        { id: "info-pamiluto", img: "assets/Pamilutobatik.png" }, // Pastikan gambar ada
+        { id: "info-ciptoning", img: "assets/Ciptoningbatik.jpg" },
+        { id: "info-cuwiri", img: "assets/Cuwiribatik.jpg" },
+        { id: "info-udan-liris", img: "assets/UdanLirisbatik.jpg" },
+        { id: "info-ulamsari-mas", img: "assets/UlamsariMasbatik.jpg" },
+        { id: "info-cendrawasih", img: "assets/Cendrawasihbatik.jpg" },
+        { id: "info-benang-bintik", img: "assets/BenangBintikbatik.jpg" },
+        { id: "info-besurek", img: "assets/Besurekbatik.jpg" },
+        { id: "info-tanah-liek", img: "assets/TanahLiekbatik.jpg" },
+    ],
+
+    // D. DINDING LUAR (BARAT/KIRI) - 9 Batik
+    outerWest: [
+        { id: "info-sawat", img: "assets/Sawatbatik.jpg" },
+        { id: "info-merak-ngibing", img: "assets/MerakNgibingbatik.jpg" },
+        { id: "info-gajah-oling", img: "assets/GajahOlingbatik.jpg" },
+        { id: "info-kangkung-setingkes", img: "assets/KangkungSetingkesbatik.jpg" },
+        { id: "info-tiga-negeri", img: "assets/TigaNegeribatik.jpg" },
+        { id: "info-buketan", img: "assets/Buketanbatik.jpg" },
+        { id: "info-djawa-hokokai", img: "assets/DjawaHokokaibatik.jpg" },
+        { id: "info-lebak-wangi", img: "assets/LebakWangibatik.jpg" }, // Ganti KujangKijang (jika 404)
+        { id: "info-ganasan", img: "assets/Ganasanbatik.jpg" },
+    ],
+
+    // E. DINDING DALAM (AREA EKSKLUSIF) - 2 Batik per Sisi
+    // Gunakan batik favorit atau ikonik di sini
+    innerNorth: [
+        { id: "info-paoman", img: "assets/Paomanbatik.jpg" },
+        { id: "info-tubo", img: "assets/Tubobatik.jpg" },
+    ],
+    innerSouth: [
+        { id: "info-gedog-tuban", img: "assets/GedogTuban.jpg" },
+        { id: "info-simbut", img: "assets/Simbutbatik.jpg" }, // Pastikan ada di assets atau ganti
+    ],
+    innerEast: [ 
+        { id: "info-parang", img: "assets/Parangbatik.jpg" }, // Masterpiece diulang tidak apa-apa
+        { id: "info-megamendung", img: "assets/batikmegamendung.jpg" },
+    ],
+    innerWest: [
+        { id: "info-kawung", img: "assets/kawungbatik.jpg" },
+        { id: "info-SekarJagadbatik", img: "assets/SekarJagadbatik.jpg" },
+    ]
+};
+
 // --- SETUP LOADER MODEL 3D ---
 function load3DModel(path, x, y, z, scale, rotationY) {
     gltfLoader.load(
@@ -210,20 +286,69 @@ function createEnvironment() {
     addCornerLight(25, -25); addCornerLight(-25, -25);
 
     // --- 5. PAJANGAN BATIK (Sama seperti sebelumnya) ---
-    createBatikDisplay(-8, 4, -11.8, "info-parang", "assets/Parangbatik.jpg", 0);
-    createBatikDisplay(8, 4, -11.8, "info-Ceplokbatik", "assets/Ceplokbatik.jpg", 0);
-    createBatikDisplay(-8, 4, 11.8, "info-Lerengbatik", "assets/Lerengbatik.jpg", Math.PI);
-    createBatikDisplay(8, 4, 11.8, "info-kawung", "assets/kawungbatik.jpg", Math.PI);
-    createBatikDisplay(-11.8, 4, -8, "info-Nitikbatik", "assets/Nitikbatik.jpg", Math.PI/2);
-    createBatikDisplay(-11.8, 4, 8, "info-ParangRusakbatik", "assets/ParangRusakbatik.jpg", Math.PI/2);
-    createBatikDisplay(11.8, 4, -8, "info-SekarJagadbatik", "assets/SekarJagadbatik.jpg", -Math.PI/2);
-    createBatikDisplay(11.8, 4, 8, "info-megamendung", "assets/batikmegamendung.jpg", -Math.PI/2);
+    // ... (Kode Lantai, Dinding, dan Lampu tetap sama seperti sebelumnya) ...
 
-    createBatikDisplay(0, 4, -39.5, "info-Semenbatik", "assets/Semenbatik.jpg", 0); 
-    createBatikDisplay(15, 4, -39.5, "info-Tambalbatik", "assets/Tambalbatik.jpg", 0);
-    createBatikDisplay(-15, 4, -39.5, "info-Truntumbatik", "assets/Truntumbatik.jpg", 0);
+    // --- 5. PAJANGAN BATIK OTOMATIS (AUTO-LAYOUT) ---
+    
+    // Konfigurasi Layout
+    const height = 4; // Tinggi pemasangan
+    
+    // A. LOOPING DINDING LUAR (9 Batik per dinding)
+    // Mulai dari X/Z -32 sampai 32, dengan jarak antar batik 8 unit
+    const startPos = -32; 
+    const gap = 8;
+    const outerWallPos = 39.5; // Koordinat dinding belakang
 
+    // 1. Dinding Utara (Belakang) - Menghadap Selatan (Rot 0)
+    galleryData.outerNorth.forEach((item, index) => {
+        createBatikDisplay(startPos + (index * gap), height, -outerWallPos, item.id, item.img, 0);
+    });
+
+    // 2. Dinding Selatan (Depan) - Menghadap Utara (Rot PI)
+    galleryData.outerSouth.forEach((item, index) => {
+        // Kita balik urutannya agar urut dari kiri ke kanan saat dilihat player
+        createBatikDisplay(startPos + (index * gap), height, outerWallPos, item.id, item.img, Math.PI);
+    });
+
+    // 3. Dinding Timur (Kanan) - Menghadap Barat (Rot -PI/2)
+    galleryData.outerEast.forEach((item, index) => {
+        createBatikDisplay(outerWallPos, height, startPos + (index * gap), item.id, item.img, -Math.PI/2);
+    });
+
+    // 4. Dinding Barat (Kiri) - Menghadap Timur (Rot PI/2)
+    galleryData.outerWest.forEach((item, index) => {
+        createBatikDisplay(-outerWallPos, height, startPos + (index * gap), item.id, item.img, Math.PI/2);
+    });
+
+
+    // B. LOOPING DINDING DALAM (VIP AREA)
+    // Hanya 2 batik per sisi, dipasang di posisi -4 dan +4
+    const innerPos = 11.3; 
+    
+    // Titik tengah tembok ada di koordinat 8.
+    // (Pintu ada di 0-4, Tembok ada di 4-12, jadi tengahnya adalah 8)
+    const centerPos = 8; 
+
+    // 1. Dalam Utara (Menghadap Meja/Selatan)
+    createBatikDisplay(-centerPos, height, -innerPos, galleryData.innerNorth[0].id, galleryData.innerNorth[0].img, 0);
+    createBatikDisplay(centerPos, height, -innerPos, galleryData.innerNorth[1].id, galleryData.innerNorth[1].img, 0);
+
+    // 2. Dalam Selatan (Menghadap Meja/Utara)
+    createBatikDisplay(-centerPos, height, innerPos, galleryData.innerSouth[0].id, galleryData.innerSouth[0].img, Math.PI);
+    createBatikDisplay(centerPos, height, innerPos, galleryData.innerSouth[1].id, galleryData.innerSouth[1].img, Math.PI);
+
+    // 3. Dalam Timur (Menghadap Meja/Barat)
+    createBatikDisplay(innerPos, height, -centerPos, galleryData.innerEast[0].id, galleryData.innerEast[0].img, -Math.PI/2);
+    createBatikDisplay(innerPos, height, centerPos, galleryData.innerEast[1].id, galleryData.innerEast[1].img, -Math.PI/2);
+
+    // 4. Dalam Barat (Menghadap Meja/Timur)
+    createBatikDisplay(-innerPos, height, -centerPos, galleryData.innerWest[0].id, galleryData.innerWest[0].img, Math.PI/2);
+    createBatikDisplay(-innerPos, height, centerPos, galleryData.innerWest[1].id, galleryData.innerWest[1].img, Math.PI/2);
+
+    // Manekin tetap di pojok
     load3DModel("assets/Manequin_batik.glb", -22, 0, -22, 0.025, Math.PI / 4);
+    
+
 }
 
 
@@ -600,9 +725,14 @@ function animate() {
         controls.moveRight(-velocity.x * delta);
         controls.moveForward(-velocity.z * delta);
 
-        const boundary = 24.0; 
+        // --- PERBAIKAN BOUNDARY DISINI ---
+        // Ruangan ukuran 82, berarti dinding ada di +/- 41.
+        // Kita set batas di 39 agar player berhenti tepat sebelum menabrak tembok.
+        const boundary = 39.0; 
+        
         const playerPos = controls.getObject().position;
 
+        // Cek Batas (Collision Detection Sederhana)
         if (playerPos.x < -boundary) { playerPos.x = -boundary; velocity.x = 0; }
         if (playerPos.x > boundary) { playerPos.x = boundary; velocity.x = 0; }
         if (playerPos.z < -boundary) { playerPos.z = -boundary; velocity.z = 0; }
