@@ -57,49 +57,56 @@
         </div>
     </div>
 
-    <div id="canting-station-ui" style="display: none;">
-            <div class="paint-container">
-                <div class="paint-header">
-                    <h2>Meja Canting Virtual</h2>
-                    <button id="close-canting" class="close-btn">X</button>
-                </div>
+<div id="canting-station-ui" style="display: none;">
+    <div class="paint-container">
+        <div class="paint-header">
+            <h2>Meja Canting Virtual (Mode Batik)</h2>
+            <button id="close-canting" class="close-btn">X</button>
+        </div>
+        
+        <div class="paint-body">
+            <div class="paint-tools">
+                <h3>Alat</h3>
+                <button class="tool-btn active" onclick="setTool('brush')">🖌️ Canting</button>
+                <button class="tool-btn" onclick="setTool('bucket')">🪣 Siram Cat</button>
+                <button class="tool-btn" onclick="setTool('eraser')">🧽 Penghapus</button>
+                <button class="tool-btn" onclick="clearCanvas()">🗑️ Bersihkan</button>
                 
-                <div class="paint-body">
-                    <div class="paint-tools">
-                        <h3>Alat</h3>
-                        <button class="tool-btn active" onclick="setTool('brush')">🖌️ Canting (Tulis)</button>
-                        <button class="tool-btn" onclick="setTool('eraser')">🧽 Penghapus</button>
-                        <button class="tool-btn" onclick="clearCanvas()">🗑️ Bersihkan Kain</button>
-                        
-                        <h3>Ukuran Canting</h3>
-                        <input type="range" id="brushSize" min="1" max="20" value="5">
-                        
-                        <h3>Warna Malam</h3>
-                        <div class="color-palette">
-                            <div class="color-swatch" style="background:#3d2b1f" onclick="setColor('#3d2b1f')"></div> <div class="color-swatch" style="background:#ffaa00" onclick="setColor('#ffaa00')"></div> <div class="color-swatch" style="background:#000000" onclick="setColor('#000000')"></div> <div class="color-swatch" style="background:#ffffff" onclick="setColor('#ffffff')"></div> </div>
-                    </div>
-
-                    <div class="canvas-wrapper">
-                        <canvas id="batikCanvas" width="500" height="500"></canvas>
-                    </div>
-
-                    <div class="paint-patterns">
-                        <h3>Pola Cap (Stempel)</h3>
-                        <p>Klik gambar lalu klik di kain untuk menempel.</p>
-                        <div class="pattern-grid">
-                            <img src="assets/Parangbatik.jpg" onclick="selectPattern(this)" alt="Parang">
-                            <img src="assets/kawungbatik.jpg" onclick="selectPattern(this)" alt="Kawung">
-                            <img src="assets/batikmegamendung.jpg" onclick="selectPattern(this)" alt="Mega Mendung">
-                            <img src="assets/Ceplokbatik.jpg" onclick="selectPattern(this)" alt="Ceplok">
-                        </div>
-                    </div>
-                </div>
+                <h3>Ukuran Canting</h3>
+                <input type="range" id="brushSize" min="1" max="20" value="3">
                 
-                <div class="paint-footer">
-                    <button class="action-btn" onclick="saveBatik()">Simpan Karya</button>
+                <h3>Warna Malam</h3>
+                <div class="color-palette">
+                    <div class="color-swatch" style="background:#3d2b1f" onclick="setColor('#3d2b1f')"></div> 
+                    <div class="color-swatch" style="background:#ffaa00" onclick="setColor('#ffaa00')"></div> 
+                    <div class="color-swatch" style="background:#000000" onclick="setColor('#000000')"></div> 
+                    <div class="color-swatch" style="background:#ffffff" onclick="setColor('#ffffff')"></div>
+                    <input type="color" id="customColorPicker" onchange="setColor(this.value)" style="width: 30px; height: 30px; padding: 0; border: none; cursor: pointer;">
+                </div>
+            </div>
+
+            <div class="canvas-wrapper" style="position: relative; background-color: white;">
+                <div id="canvas-background" style="position: absolute; top:0; left:0; width: 100%; height: 100%; opacity: 0.3; pointer-events: none; background-size: contain;"></div>
+                <canvas id="batikCanvas" width="512" height="512" style="background: transparent; position: relative; z-index: 2; border: 1px solid #ccc; cursor: crosshair;"></canvas>
+            </div>
+
+            <div class="paint-patterns">
+                <h3>Pola Jiplak (Panduan)</h3>
+                <p>Pilih pola untuk dijadikan panduan menggambar.</p>
+                <div class="pattern-grid">
+                    <img src="assets/Parangbatik.jpg" onclick="selectPattern(this)" alt="Parang">
+                    <img src="assets/kawungbatik.jpg" onclick="selectPattern(this)" alt="Kawung">
+                    <img src="assets/batikmegamendung.jpg" onclick="selectPattern(this)" alt="Mega Mendung">
+                    <img src="assets/Ceplokbatik.jpg" onclick="selectPattern(this)" alt="Ceplok">
                 </div>
             </div>
         </div>
+        
+        <div class="paint-footer">
+            <button class="action-btn" onclick="saveBatik()">Simpan Karya</button>
+        </div>
+    </div>
+</div>
 
 <div id="batik-data-source" style="display: none;">
       
@@ -201,6 +208,339 @@
           <ul><li>Cinta yang tumbuh kembali</li><li>Kesetiaan yang abadi</li></ul>
         </div>
       </div>
+
+      <div id="info-sidomukti">
+  <span class="data-title">Batik Sidomukti</span>
+  <div class="data-desc">
+    <p>Motif asal Solo/Yogya yang sering digunakan pengantin, diwarnai dengan soga alam.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Harapan masa depan yang baik</li><li>Penuh kebahagiaan dan kesejahteraan</li></ul>
+  </div>
+</div>
+
+<div id="info-sidoluhur">
+  <span class="data-title">Batik Sidoluhur</span>
+  <div class="data-desc">
+    <p>Motif keraton yang biasa dipakai untuk upacara atau pernikahan, melambangkan keluhuran budi.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kedudukan yang tinggi</li><li>Menjadi teladan bagi masyarakat</li></ul>
+  </div>
+</div>
+
+<div id="info-sidoasih">
+  <span class="data-title">Batik Sidoasih</span>
+  <div class="data-desc">
+    <p>Motif dengan unsur geometris yang melambangkan kasih sayang antar sesama manusia.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kasih sayang dalam rumah tangga</li><li>Kehidupan yang harmonis</li></ul>
+  </div>
+</div>
+
+<div id="info-satrio-manah">
+  <span class="data-title">Batik Satrio Manah</span>
+  <div class="data-desc">
+    <p>Biasanya dipakai oleh wali pengantin pria saat meminang mempelai wanita.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Ksatria yang membidik hati</li><li>Lamaran yang diterima dengan baik</li></ul>
+  </div>
+</div>
+
+<div id="info-wahyu-tumurun">
+  <span class="data-title">Batik Wahyu Tumurun</span>
+  <div class="data-desc">
+    <p>Motif yang menggambarkan turunnya wahyu atau anugerah dari Tuhan, sering bergambar mahkota terbang.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Pengharapan akan petunjuk Ilahi</li><li>Kesuksesan dan pangkat</li></ul>
+  </div>
+</div>
+
+<div id="info-grompol">
+  <span class="data-title">Batik Grompol</span>
+  <div class="data-desc">
+    <p>Motif khas Yogyakarta yang berarti "berkumpul" atau "bersatu", sering dipakai saat siraman.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Berkumpulnya rezeki dan kebahagiaan</li><li>Persatuan keluarga besar</li></ul>
+  </div>
+</div>
+
+<div id="info-ciptoning">
+  <span class="data-title">Batik Ciptoning</span>
+  <div class="data-desc">
+    <p>Motif yang sering dipakai untuk meditasi atau mendekatkan diri pada Yang Kuasa.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kebijaksanaan pemimpin</li><li>Ketenangan batin</li></ul>
+  </div>
+</div>
+
+<div id="info-cuwiri">
+  <span class="data-title">Batik Cuwiri</span>
+  <div class="data-desc">
+    <p>Sering digunakan untuk acara mitoni (tujuh bulanan), motifnya terlihat kecil-kecil.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Pengharapan kebaikan untuk bayi</li><li>Rasa hormat dan martabat</li></ul>
+  </div>
+</div>
+
+<div id="info-udan-liris">
+  <span class="data-title">Batik Udan Liris</span>
+  <div class="data-desc">
+    <p>Motif garis miring yang berisi berbagai motif kecil, menggambarkan hujan gerimis.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kesuburan dan kemakmuran</li><li>Ketabahan menghadapi cobaan</li></ul>
+  </div>
+</div>
+
+<div id="info-alas-alasan">
+  <span class="data-title">Batik Alas-alasan</span>
+  <div class="data-desc">
+    <p>Motif yang menggambarkan hutan dengan berbagai hewan di dalamnya.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kelestarian alam</li><li>Mawas diri dan kehati-hatian</li></ul>
+  </div>
+</div>
+
+<div id="info-babon-angrem">
+  <span class="data-title">Batik Babon Angrem</span>
+  <div class="data-desc">
+    <p>Menggambarkan ayam betina yang sedang mengerami telurnya.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kasih sayang ibu</li><li>Kesabaran dalam menanti</li></ul>
+  </div>
+</div>
+
+<div id="info-tujuh-rupa">
+  <span class="data-title">Batik Pekalongan (Tujuh Rupa)</span>
+  <div class="data-desc">
+    <p>Batik Pesisir yang sangat kaya warna dengan motif tumbuh-tumbuhan dan hewan.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Akulturasi budaya</li><li>Kelembutan dan keindahan alam</li></ul>
+  </div>
+</div>
+
+<div id="info-jlamprang">
+  <span class="data-title">Batik Jlamprang</span>
+  <div class="data-desc">
+    <p>Motif geometris khas Pekalongan yang terinspirasi dari kain India (Patola).</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Hubungan manusia dan Dewa</li><li>Keseimbangan hidup</li></ul>
+  </div>
+</div>
+
+<div id="info-singa-barong">
+  <span class="data-title">Batik Singa Barong</span>
+  <div class="data-desc">
+    <p>Batik khas Cirebon yang menampilkan makhluk mitologi Singa Barong.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kekuatan dan perlindungan</li><li>Simbol spiritualitas</li></ul>
+  </div>
+</div>
+
+<div id="info-simbut">
+  <span class="data-title">Batik Simbut</span>
+  <div class="data-desc">
+    <p>Batik asal Banten (Baduy) dengan motif menyerupai daun talas yang sederhana.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kesederhanaan</li><li>Kedekatan dengan alam</li></ul>
+  </div>
+</div>
+
+<div id="info-pring-sedapur">
+  <span class="data-title">Batik Pring Sedapur</span>
+  <div class="data-desc">
+    <p>Batik khas Magetan dengan motif rumpun bambu.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Persatuan dan kekuatan</li><li>Hidup rukun bertetangga</li></ul>
+  </div>
+</div>
+
+<div id="info-gentongan">
+  <span class="data-title">Batik Gentongan</span>
+  <div class="data-desc">
+    <p>Batik khas Madura dengan warna tajam yang diproses dalam gentong.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Karakter yang kuat dan berani</li><li>Kebebasan berekspresi</li></ul>
+  </div>
+</div>
+
+<div id="info-grageh-waluh">
+  <span class="data-title">Batik Grageh Waluh</span>
+  <div class="data-desc">
+    <p>Motif semenan yang menggambarkan tanaman waluh (labu) yang menjalar.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Cita-cita yang terus tumbuh</li><li>Keteguhan hati</li></ul>
+  </div>
+</div>
+
+<div id="info-pucuk-rebung">
+  <span class="data-title">Batik Pucuk Rebung</span>
+  <div class="data-desc">
+    <p>Motif tumpal berbentuk tunas bambu, khas Melayu dan Betawi.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kekuatan dari dalam</li><li>Harapan yang terus tumbuh</li></ul>
+  </div>
+</div>
+
+<div id="info-ondel-ondel">
+  <span class="data-title">Batik Ondel-ondel</span>
+  <div class="data-desc">
+    <p>Batik khas Betawi yang menampilkan ikon boneka raksasa Jakarta.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Penolak bala</li><li>Keceriaan masyarakat Betawi</li></ul>
+  </div>
+</div>
+
+<div id="info-ulamsari-mas">
+  <span class="data-title">Batik Ulamsari Mas</span>
+  <div class="data-desc">
+    <p>Batik khas Bali yang menggambarkan ikan dan udang.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kesejahteraan nelayan</li><li>Kekayaan sumber daya laut</li></ul>
+  </div>
+</div>
+
+<div id="info-cendrawasih">
+  <span class="data-title">Batik Cendrawasih</span>
+  <div class="data-desc">
+    <p>Batik Papua yang menampilkan keindahan burung Cendrawasih.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Keindahan alam Papua</li><li>Keagungan dan kehormatan</li></ul>
+  </div>
+</div>
+
+<div id="info-benang-bintik">
+  <span class="data-title">Batik Benang Bintik</span>
+  <div class="data-desc">
+    <p>Batik khas Kalimantan Tengah (Dayak) dengan motif Batang Garing.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Pohon kehidupan</li><li>Keseimbangan manusia dan alam</li></ul>
+  </div>
+</div>
+
+<div id="info-besurek">
+  <span class="data-title">Batik Besurek</span>
+  <div class="data-desc">
+    <p>Batik khas Bengkulu yang bermotif kaligrafi Arab gundul.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Nilai religius yang kuat</li><li>Akulturasi budaya Islam</li></ul>
+  </div>
+</div>
+
+<div id="info-tanah-liek">
+  <span class="data-title">Batik Tanah Liek</span>
+  <div class="data-desc">
+    <p>Batik Minangkabau yang pewarnaannya menggunakan tanah liat.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Asal usul manusia (tanah)</li><li>Kerendahan hati</li></ul>
+  </div>
+</div>
+
+<div id="info-sawat">
+  <span class="data-title">Batik Sawat</span>
+  <div class="data-desc">
+    <p>Motif yang menyerupai sayap burung garuda (Lar) yang terbuka.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kekuasaan raja</li><li>Perlindungan</li></ul>
+  </div>
+</div>
+
+<div id="info-merak-ngibing">
+  <span class="data-title">Batik Merak Ngibing</span>
+  <div class="data-desc">
+    <p>Batik khas Tasikmalaya/Garut yang menggambarkan merak menari.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Keanggunan</li><li>Keindahan ciptaan Tuhan</li></ul>
+  </div>
+</div>
+
+<div id="info-gajah-oling">
+  <span class="data-title">Batik Gajah Oling</span>
+  <div class="data-desc">
+    <p>Batik khas Banyuwangi dengan motif menyerupai tanda tanya (belalai gajah).</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Mengingat Yang Maha Kuasa</li><li>Kekuatan yang besar</li></ul>
+  </div>
+</div>
+
+<div id="info-kangkung-setingkes">
+  <span class="data-title">Batik Kangkung Setingkes</span>
+  <div class="data-desc">
+    <p>Motif Banyuwangi yang menggambarkan ikat kangkung.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kerukunan warga</li><li>Kebersamaan yang erat</li></ul>
+  </div>
+</div>
+
+<div id="info-tiga-negeri">
+  <span class="data-title">Batik Tiga Negeri</span>
+  <div class="data-desc">
+    <p>Mahakarya batik Lasem yang diproses di tiga daerah berbeda untuk pewarnaan.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Harmoni tiga budaya (Jawa, Tionghoa, Belanda)</li><li>Perjuangan yang panjang</li></ul>
+  </div>
+</div>
+
+<div id="info-buketan">
+  <span class="data-title">Batik Buketan</span>
+  <div class="data-desc">
+    <p>Motif pesisir yang dipengaruhi Belanda, bergambar rangkaian bunga (bouquet).</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kecantikan abadi</li><li>Romantisme dan kebahagiaan</li></ul>
+  </div>
+</div>
+
+<div id="info-djawa-hokokai">
+  <span class="data-title">Batik Djawa Hokokai</span>
+  <div class="data-desc">
+    <p>Batik yang muncul pada masa pendudukan Jepang dengan motif bunga sakura/kupu-kupu.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Ketelatenan dalam kesulitan</li><li>Adaptasi budaya</li></ul>
+  </div>
+</div>
+
+<div id="info-lebak-wangi">
+  <span class="data-title">Batik Lebak Wangi</span>
+  <div class="data-desc">
+    <p>Batik khas Banten yang terinspirasi dari nama keraton.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Keharuman nama baik</li><li>Kejayaan masa lalu</li></ul>
+  </div>
+</div>
+
+<div id="info-ganasan">
+  <span class="data-title">Batik Ganasan</span>
+  <div class="data-desc">
+    <p>Batik khas Subang yang bermotif buah nanas.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Potensi daerah lokal</li><li>Rasa manisnya hasil usaha</li></ul>
+  </div>
+</div>
+
+<div id="info-paoman">
+  <span class="data-title">Batik Paoman</span>
+  <div class="data-desc">
+    <p>Batik khas Indramayu yang sering menggambarkan flora dan fauna pesisir.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kehidupan masyarakat nelayan</li><li>Ketulusan dan kepolosan</li></ul>
+  </div>
+</div>
+
+<div id="info-tubo">
+  <span class="data-title">Batik Tubo</span>
+  <div class="data-desc">
+    <p>Batik khas Ternate, Maluku Utara dengan motif rempah-rempah (cengkeh/pala).</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kekayaan alam Maluku</li><li>Persahabatan dan kehangatan</li></ul>
+  </div>
+</div>
+
+<div id="info-gedog-tuban">
+  <span class="data-title">Batik Gedog Tuban</span>
+  <div class="data-desc">
+    <p>Batik yang dibuat dari kain tenun tangan kapas, teksturnya kasar namun unik.</p>
+    <p><strong>Maknanya:</strong></p>
+    <ul><li>Kerja keras pengrajin</li><li>Kemandirian ekonomi</li></ul>
+  </div>
+</div>
 
     <script type="module" src="main.js"></script>
   </body>

@@ -54,19 +54,26 @@ init();
 animate();
 
 function init() {
-  // 1. Setup Scene
+  // Setup Scene
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x101010); 
-  scene.fog = new THREE.Fog(0x101010, 0, 60);
+  scene.fog = new THREE.Fog(0x101010, 10, 90);
 
-  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 500);
   camera.position.y = PLAYER_HEIGHT;
-  camera.position.z = 10;
+  camera.position.z = 25;
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
+  // --- PERBAIKAN UTAMA DI SINI ---
+  renderer = new THREE.WebGLRenderer({ 
+      antialias: true,
+      // INI KUNCINYA: Mengaktifkan perhitungan kedalaman logaritmik
+      // Mencegah flickering pada objek yang jauh atau luas
+      logarithmicDepthBuffer: true 
+  });
+  
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true; 
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft Shadow
   renderer.outputColorSpace = THREE.SRGBColorSpace; 
   document.body.appendChild(renderer.domElement);
 
@@ -76,7 +83,7 @@ function init() {
   setupControls();
   setupPopupEvents();
   setupGameEvents();
-  setupCantingStationLogic(); // Setup logika Javascript untuk Canvas
+  setupCantingStationLogic();
 
   window.addEventListener("resize", onWindowResize);
   document.addEventListener("mousedown", onMouseDown);
@@ -84,53 +91,141 @@ function init() {
   document.addEventListener("mouseup", () => { isDrawing = false; });
 }
 
+function createInnerWalls() {
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0xDDDDDD, roughness: 0.5 });
+    
+    // Dimensi Ruang Dalam
+    const wallHeight = 12;
+    const thickness = 1; 
+    const radius = 12; // Jarak dinding dari titik pusat (0,0)
+    const doorGap = 4; // Setengah lebar pintu (Total lebar pintu = 8)
+
+    // Fungsi membuat 1 blok dinding
+    function createWallBlock(x, z, sizeX, sizeZ) {
+        const geo = new THREE.BoxGeometry(sizeX, wallHeight, sizeZ);
+        const mesh = new THREE.Mesh(geo, wallMat);
+        mesh.position.set(x, wallHeight / 2, z);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        scene.add(mesh);
+    }
+
+    // --- MEMBUAT 4 SUDUT "L" ---
+    
+    // Sudut 1: Kanan Atas (Timur Laut) -> Pintu di Utara & Timur
+    // Dinding Utara-Kanan
+    createWallBlock(radius/2 + doorGap/2, -radius, radius - doorGap, thickness);
+    // Dinding Timur-Atas
+    createWallBlock(radius, -radius/2 - doorGap/2, thickness, radius - doorGap);
+
+    // Sudut 2: Kanan Bawah (Tenggara) -> Pintu di Timur & Selatan
+    // Dinding Selatan-Kanan
+    createWallBlock(radius/2 + doorGap/2, radius, radius - doorGap, thickness);
+    // Dinding Timur-Bawah
+    createWallBlock(radius, radius/2 + doorGap/2, thickness, radius - doorGap);
+
+    // Sudut 3: Kiri Bawah (Barat Daya) -> Pintu di Selatan & Barat
+    // Dinding Selatan-Kiri
+    createWallBlock(-radius/2 - doorGap/2, radius, radius - doorGap, thickness);
+    // Dinding Barat-Bawah
+    createWallBlock(-radius, radius/2 + doorGap/2, thickness, radius - doorGap);
+
+    // Sudut 4: Kiri Atas (Barat Laut) -> Pintu di Barat & Utara
+    // Dinding Utara-Kiri
+    createWallBlock(-radius/2 - doorGap/2, -radius, radius - doorGap, thickness);
+    // Dinding Barat-Atas
+    createWallBlock(-radius, -radius/2 - doorGap/2, thickness, radius - doorGap);
+}
+
 function createEnvironment() {
-    // A. STRUKTUR BANGUNAN
-    const floorGeo = new THREE.PlaneGeometry(50, 50);
-    const floorMat = new THREE.MeshStandardMaterial({ color: 0x3d2b1f, roughness: 0.1, metalness: 0.0 });
+    // --- 1. LANTAI (SOLUSI STABIL) ---
+    const roomSize = 82;
+    const floorGeo = new THREE.BoxGeometry(roomSize, 2, roomSize);
+    
+    // GANTI KE LAMBERT MATERIAL
+    // Material ini tidak memantulkan cahaya aneh (specular) penyebab flickering
+    const floorMat = new THREE.MeshLambertMaterial({ 
+        color: 0x3d2b1f 
+    });
+    
     const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
+    
+    // TURUNKAN SEDIKIT (-1.05)
+    // Agar permukaan atasnya ada di y=-0.05, tidak menabrak tembok/meja di y=0
+    floor.position.y = -1.05; 
+    
+    floor.receiveShadow = true; 
     scene.add(floor);
 
-    const wallGeo = new THREE.BoxGeometry(50, 20, 50);
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, side: THREE.BackSide, roughness: 0.9 });
+    // --- DINDING UTAMA ---
+    const wallGeo = new THREE.BoxGeometry(roomSize, 20, roomSize);
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, side: THREE.BackSide });
     const walls = new THREE.Mesh(wallGeo, wallMat);
     walls.position.y = 10;
     walls.receiveShadow = true;
     scene.add(walls);
 
-    const plinth = new THREE.Mesh(new THREE.BoxGeometry(49.8, 0.5, 49.8), new THREE.MeshBasicMaterial({ color: 0x111111 }));
-    plinth.position.y = 0.25;
-    scene.add(plinth);
+    // --- 2. STRUKTUR DALAM ---
+    createInnerWalls(); 
 
-    // B. PENCAHAYAAN
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    // --- 3. MEJA CANTING ---
+    createCantingTable(0, 0.5, 0);
+
+    // --- 4. PENCAHAYAAN (DIRECTIONAL LIGHT + BIAS BESAR) ---
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
 
-    createCeilingLamp(10, 10);
-    createCeilingLamp(-10, 10);
-    createCeilingLamp(10, -10);
-    createCeilingLamp(-10, -10);
+    const dirLight = new THREE.DirectionalLight(0xffaa00, 1.5);
+    dirLight.position.set(0, 50, 0);
+    dirLight.target.position.set(0, 0, 0);
+    dirLight.castShadow = true;
 
-    // C. PAJANGAN BATIK
-    createBatikDisplay(0, 4, -24.5, "info-parang", "assets/Parangbatik.jpg", 0); 
-    createBatikDisplay(-12, 4, -24.5, "info-Ceplokbatik", "assets/Ceplokbatik.jpg", 0);
-    createBatikDisplay(12, 4, -24.5, "info-Lerengbatik", "assets/Lerengbatik.jpg", 0);
-    createBatikDisplay(-24.5, 4, -15, "info-kawung", "assets/kawungbatik.jpg", Math.PI / 2);
-    createBatikDisplay(-24.5, 4, -5, "info-Nitikbatik", "assets/Nitikbatik.jpg", Math.PI / 2);
-    createBatikDisplay(-24.5, 4, 5, "info-ParangRusakbatik", "assets/ParangRusakbatik.jpg", Math.PI / 2);
-    createBatikDisplay(-24.5, 4, 15, "info-SekarJagadbatik", "assets/SekarJagadbatik.jpg", Math.PI / 2);
-    createBatikDisplay(24.5, 4, -15, "info-megamendung", "assets/batikmegamendung.jpg", -Math.PI / 2);
-    createBatikDisplay(24.5, 4, -5, "info-Semenbatik", "assets/Semenbatik.jpg", -Math.PI / 2);
-    createBatikDisplay(24.5, 4, 5, "info-Tambalbatik", "assets/Tambalbatik.jpg", -Math.PI / 2);
-    createBatikDisplay(24.5, 4, 15, "info-Truntumbatik", "assets/Truntumbatik.jpg", -Math.PI / 2);
+    // Optimasi Shadow Camera
+    const d = 50; 
+    dirLight.shadow.camera.left = -d;
+    dirLight.shadow.camera.right = d;
+    dirLight.shadow.camera.top = d;
+    dirLight.shadow.camera.bottom = -d;
+    dirLight.shadow.camera.near = 1;
+    dirLight.shadow.camera.far = 100;
+
+    // RESOLUSI & BIAS (Bias diperbesar sedikit)
+    dirLight.shadow.mapSize.width = 2048; // Cukup 2048 agar ringan
+    dirLight.shadow.mapSize.height = 2048;
+    
+    // Bias dinaikkan agar bayangan tidak menempel terlalu ketat ke lantai (penyebab garis)
+    dirLight.shadow.bias = -0.001; 
+    dirLight.shadow.normalBias = 0.0; // Nol-kan normalBias untuk Lambert Material
+    
+    scene.add(dirLight);
+    scene.add(dirLight.target);
+
+    // Lampu Pemanis Sudut
+    function addCornerLight(x, z) {
+        const l = new THREE.PointLight(0xffffff, 80, 40);
+        l.position.set(x, 15, z);
+        scene.add(l);
+    }
+    addCornerLight(25, 25); addCornerLight(-25, 25);
+    addCornerLight(25, -25); addCornerLight(-25, -25);
+
+    // --- 5. PAJANGAN BATIK (Sama seperti sebelumnya) ---
+    createBatikDisplay(-8, 4, -11.8, "info-parang", "assets/Parangbatik.jpg", 0);
+    createBatikDisplay(8, 4, -11.8, "info-Ceplokbatik", "assets/Ceplokbatik.jpg", 0);
+    createBatikDisplay(-8, 4, 11.8, "info-Lerengbatik", "assets/Lerengbatik.jpg", Math.PI);
+    createBatikDisplay(8, 4, 11.8, "info-kawung", "assets/kawungbatik.jpg", Math.PI);
+    createBatikDisplay(-11.8, 4, -8, "info-Nitikbatik", "assets/Nitikbatik.jpg", Math.PI/2);
+    createBatikDisplay(-11.8, 4, 8, "info-ParangRusakbatik", "assets/ParangRusakbatik.jpg", Math.PI/2);
+    createBatikDisplay(11.8, 4, -8, "info-SekarJagadbatik", "assets/SekarJagadbatik.jpg", -Math.PI/2);
+    createBatikDisplay(11.8, 4, 8, "info-megamendung", "assets/batikmegamendung.jpg", -Math.PI/2);
+
+    createBatikDisplay(0, 4, -39.5, "info-Semenbatik", "assets/Semenbatik.jpg", 0); 
+    createBatikDisplay(15, 4, -39.5, "info-Tambalbatik", "assets/Tambalbatik.jpg", 0);
+    createBatikDisplay(-15, 4, -39.5, "info-Truntumbatik", "assets/Truntumbatik.jpg", 0);
 
     load3DModel("assets/Manequin_batik.glb", -22, 0, -22, 0.025, Math.PI / 4);
-
-    // D. CANTING STATION (MEJA BARU)
-    createCantingTable(0, 0.5, 0); // Posisi di tengah ruangan (0,0,0)
 }
+
 
 function createCantingTable(x, y, z) {
     // Group untuk meja
@@ -209,37 +304,55 @@ function createCeilingLamp(x, z) {
 }
 
 function createBatikDisplay(x, y, z, contentId, imgSrc, rotY) {
+    // Frame Batik
     const frameGeo = new THREE.BoxGeometry(4.2, 4.2, 0.2);
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x5c4033 }); 
     const frame = new THREE.Mesh(frameGeo, frameMat);
     frame.position.set(x, y, z);
     frame.rotation.y = rotY;
-    frame.castShadow = true;
     scene.add(frame);
 
-    const tex = textureLoader.load(imgSrc, (texture) => { texture.colorSpace = THREE.SRGBColorSpace; });
-    const geo = new THREE.PlaneGeometry(4, 4);
-    const mat = new THREE.MeshStandardMaterial({ map: tex, side: THREE.DoubleSide });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(0, 0, 0.11); 
-    mesh.receiveShadow = true; 
-    frame.add(mesh);
+    // Texture Batik
+    textureLoader.load(
+        imgSrc, 
+        (texture) => { 
+            texture.colorSpace = THREE.SRGBColorSpace; 
+            const geo = new THREE.PlaneGeometry(4, 4);
+            // PENTING: DoubleSide agar terlihat dari depan & belakang jika salah putar
+            const mat = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(0, 0, 0.11); // Geser sedikit dari frame agar tidak flickering
+            mesh.receiveShadow = true; 
+            
+            // Data untuk interaksi klik
+            mesh.userData = { isBatik: true, contentId: contentId, imgSrc: imgSrc };
+            interactableObjects.push(mesh);
+            frame.add(mesh);
+        },
+        undefined,
+        (err) => { console.warn(`Gagal load: ${imgSrc}`); }
+    );
 
-    mesh.userData = { isBatik: true, contentId: contentId, imgSrc: imgSrc, originalMat: mat };
-    interactableObjects.push(mesh);
+    // Lampu Sorot (Tanpa Shadow agar performa ringan & tidak flickering)
+    const spotLight = new THREE.SpotLight(0xffffff, 100); 
+    spotLight.angle = Math.PI / 6; 
+    spotLight.penumbra = 0.5; 
+    spotLight.decay = 1.5; 
+    spotLight.distance = 40; 
+    spotLight.castShadow = false; // MATIKAN SHADOW DI SINI
+    
+    // Posisi lampu disesuaikan rotasi
+    const offsetDistance = 6; 
+    let lightX = x, lightZ = z;
+    if (Math.abs(rotY) < 0.1) lightZ += offsetDistance; // Menghadap Z Positif
+    else if (Math.abs(rotY - Math.PI) < 0.1) lightZ -= offsetDistance; 
+    else if (rotY > 0) lightX += offsetDistance; 
+    else lightX -= offsetDistance;
 
-    const spotLight = new THREE.SpotLight(0xffffff, 400); 
-    spotLight.angle = Math.PI / 6; spotLight.penumbra = 0.5; spotLight.decay = 1.5; spotLight.distance = 50; spotLight.castShadow = true;
-    const offsetDistance = 8; const lightHeight = 15;   
-    let lightX = x; let lightZ = z;
-    if (rotY === 0) lightZ += offsetDistance; else if (rotY === Math.PI/2) lightX += offsetDistance; else if (rotY === -Math.PI/2) lightX -= offsetDistance; 
-    spotLight.position.set(lightX, lightHeight, lightZ);
-    spotLight.target = mesh; 
+    spotLight.position.set(lightX, 10, lightZ);
+    spotLight.target = frame; 
     scene.add(spotLight);
-    const fixture = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshBasicMaterial({ color: 0x111111 }));
-    fixture.position.set(lightX, lightHeight, lightZ);
-    fixture.lookAt(x, y, z); 
-    scene.add(fixture);
+    scene.add(spotLight.target);
 }
 
 function onWindowResize() {
