@@ -677,37 +677,40 @@ function setupCantingStationLogic() {
     canvas = document.getElementById('batikCanvas');
     ctx = canvas.getContext('2d');
     
-    // Inisialisasi Canvas Putih
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // --- PERBAIKAN 1: Hapus Inisialisasi Putih Solid ---
+    // Jangan gunakan fillRect("white") karena akan menutup pola di belakang.
+    // Kita gunakan clearRect agar canvas bersih/transparan.
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Set tampilan awal canvas terlihat putih lewat CSS
+    canvas.style.backgroundColor = "white"; 
 
-    // Event Listeners untuk UI
+    // Variabel lokal untuk pola jiplak
+    let activePatternUrl = null;
+
+    // --- EVENT LISTENERS UI ---
     document.getElementById('close-canting').addEventListener('click', () => {
         document.getElementById("canting-station-ui").style.display = "none";
-        controls.lock();
+        controls.lock(); 
     });
 
     document.getElementById('brushSize').addEventListener('input', (e) => {
         brushSize = e.target.value;
     });
 
-    // Drawing Logic di Canvas 2D
+    // Event Mouse pada Canvas
     canvas.addEventListener('mousedown', startPaint);
     canvas.addEventListener('mousemove', paint);
     canvas.addEventListener('mouseup', () => isPainting = false);
     canvas.addEventListener('mouseleave', () => isPainting = false);
 
-    // Expose fungsi ke window agar bisa dipanggil HTML onclick
+    // --- FUNGSI GLOBAL ---
+
     window.setTool = (tool) => {
         currentTool = tool;
         document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-        
-        // Hapus seleksi pattern jika ganti ke brush
-        if (tool !== 'stamp') {
-            document.querySelectorAll('.pattern-grid img').forEach(img => img.classList.remove('selected'));
-            currentPattern = null;
-        }
+        const btn = document.querySelector(`button[onclick="setTool('${tool}')"]`);
+        if(btn) btn.classList.add('active');
     };
 
     window.setColor = (color) => {
@@ -715,50 +718,90 @@ function setupCantingStationLogic() {
     };
 
     window.clearCanvas = () => {
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Bersihkan pixel (jadi transparan lagi)
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Reset Overlay Jiplak
+        const bgDiv = document.getElementById('canvas-background');
+        bgDiv.style.backgroundImage = 'none';
+        activePatternUrl = null;
+        
+        // Kembalikan canvas jadi putih solid (tidak transparan)
+        canvas.style.backgroundColor = "white";
+        
+        document.querySelectorAll('.pattern-grid img').forEach(img => img.classList.remove('selected'));
     };
 
+    // --- PERBAIKAN 2: Logic Jiplak (Tracing Table) ---
     window.selectPattern = (imgElement) => {
-        currentTool = 'stamp';
-        currentPattern = imgElement;
-        
-        // Highlight visual
+        const bgDiv = document.getElementById('canvas-background');
+        const clickedUrl = imgElement.src;
+
         document.querySelectorAll('.pattern-grid img').forEach(img => img.classList.remove('selected'));
-        imgElement.classList.add('selected');
-        
-        // Update tombol tool
-        document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+
+        if (activePatternUrl === clickedUrl) {
+            // MATIKAN JIPLAK (Toggle Off)
+            bgDiv.style.backgroundImage = 'none';
+            canvas.style.backgroundColor = "white"; // Canvas kembali putih solid
+            activePatternUrl = null;
+        } else {
+            // HIDUPKAN JIPLAK (Toggle On)
+            
+            // A. Atur Gambar Pola di Background
+            bgDiv.style.backgroundImage = `url(${clickedUrl})`;
+            bgDiv.style.position = 'absolute';
+            bgDiv.style.top = '0';
+            bgDiv.style.left = '0';
+            bgDiv.style.width = '100%';
+            bgDiv.style.height = '100%';
+            
+            // PENTING: Pola taruh di BELAKANG Canvas
+            bgDiv.style.zIndex = '0'; 
+            
+            bgDiv.style.backgroundSize = 'cover'; 
+            bgDiv.style.backgroundPosition = 'center';
+            bgDiv.style.backgroundRepeat = 'no-repeat';
+
+            // B. Buat Canvas Semi-Transparan agar pola di belakang terlihat
+            canvas.style.backgroundColor = "rgba(255, 255, 255, 0.5)"; // 50% Transparan
+            
+            // C. Pastikan Canvas ada di DEPAN Pola
+            canvas.style.position = "relative";
+            canvas.style.zIndex = "1";
+
+            activePatternUrl = clickedUrl;
+            imgElement.classList.add('selected');
+
+            // Otomatis pindah ke Brush
+            if (currentTool !== 'brush') window.setTool('brush');
+        }
     };
     
-window.saveBatik = () => {
-        // 1. Siapkan Canvas Baru untuk Pola 4x4
+    // --- PERBAIKAN 3: Simpan Batik ---
+    window.saveBatik = () => {
         const patternCanvas = document.createElement('canvas');
         const w = canvas.width;
         const h = canvas.height;
         
-        // Ukuran 4x lipat
         patternCanvas.width = w * 4;
         patternCanvas.height = h * 4;
         
         const pCtx = patternCanvas.getContext('2d');
 
-        // 2. Isi background putih dulu (opsional, untuk keamanan)
+        // 1. Isi Background Putih Dulu (Wajib, karena canvas asli transparan)
         pCtx.fillStyle = "white";
         pCtx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
 
-        // 3. Lakukan Looping 4x4 untuk menduplikasi gambar
+        // 2. Gambar hasil cantingan user di atas putih tadi
         for (let row = 0; row < 4; row++) {
             for (let col = 0; col < 4; col++) {
-                // Gambar canvas asli ke posisi grid (col * lebar, row * tinggi)
                 pCtx.drawImage(canvas, col * w, row * h);
             }
         }
 
-        // 4. Download hasil Pattern 4x4
         const link = document.createElement('a');
-        link.download = 'karya-batik-saya.png';
-        link.href = patternCanvas.toDataURL(); // Ambil data dari patternCanvas, bukan canvas asli
+        link.download = 'karya-batik-saya-full.png';
+        link.href = patternCanvas.toDataURL(); 
         link.click();
         
         alert("Karya batik berhasil disimpan!");
