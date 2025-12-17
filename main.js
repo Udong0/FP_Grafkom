@@ -409,6 +409,84 @@ function createCantingTable(x, y, z) {
     scene.add(tableGroup);
 }
 
+// --- ALGORITMA FLOOD FILL (CAT SIRAM) ---
+
+// Helper: Ubah Hex (#RRGGBB) ke Array [r, g, b, 255]
+function hexToRgbArray(hex) {
+    if (!hex || hex.length < 7) return [0, 0, 0, 255]; 
+    const bigint = parseInt(hex.slice(1), 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return [r, g, b, 255];
+}
+
+function floodFill(startX, startY, fillColorHex, ctx, canvas) {
+    const w = canvas.width;
+    const h = canvas.height;
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const data = imageData.data; // Array pixel
+    const fillRgb = hexToRgbArray(fillColorHex);
+    
+    // Cek batas koordinat
+    if (startX < 0 || startX >= w || startY < 0 || startY >= h) return;
+
+    // Helper index array 1D
+    const getIndex = (x, y) => (y * w + x) * 4;
+
+    // Ambil warna target (warna pixel yang diklik)
+    const targetIndex = getIndex(startX, startY);
+    const targetR = data[targetIndex];
+    const targetG = data[targetIndex + 1];
+    const targetB = data[targetIndex + 2];
+    const targetA = data[targetIndex + 3];
+
+    // Jika warna yang diklik sudah sama dengan warna cat, berhenti
+    if (targetR === fillRgb[0] && targetG === fillRgb[1] && targetB === fillRgb[2] && targetA === fillRgb[3]) {
+        return;
+    }
+
+    // Siapkan antrian (Queue) untuk pemrosesan pixel
+    const queue = [[startX, startY]];
+    
+    // Penanda pixel yang sudah dicek agar tidak infinite loop
+    const visited = new Uint8Array(w * h); // 0 = belum, 1 = sudah
+
+    const matchTargetColor = (idx) => {
+        return data[idx] === targetR &&
+               data[idx + 1] === targetG &&
+               data[idx + 2] === targetB &&
+               data[idx + 3] === targetA;
+    };
+
+    while (queue.length > 0) {
+        const [x, y] = queue.pop();
+        const idx = getIndex(x, y);
+        const visitedIdx = y * w + x;
+
+        if (visited[visitedIdx]) continue;
+        
+        // Cek apakah warna pixel ini cocok dengan target
+        if (matchTargetColor(idx)) {
+            // Ganti warna pixel
+            data[idx] = fillRgb[0];
+            data[idx + 1] = fillRgb[1];
+            data[idx + 2] = fillRgb[2];
+            data[idx + 3] = fillRgb[3];
+            
+            visited[visitedIdx] = 1; // Tandai sudah diproses
+
+            // Masukkan tetangga (Kiri, Kanan, Atas, Bawah) ke antrian
+            if (x > 0) queue.push([x - 1, y]);
+            if (x < w - 1) queue.push([x + 1, y]);
+            if (y > 0) queue.push([x, y - 1]);
+            if (y < h - 1) queue.push([x, y + 1]);
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+}
+
 function createCeilingLamp(x, z) {
     const lampGroup = new THREE.Group();
     lampGroup.position.set(x, 18, z); 
@@ -689,19 +767,25 @@ window.saveBatik = () => {
 
 function startPaint(e) {
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = Math.floor(e.clientX - rect.left); // Gunakan Math.floor agar koordinat bulat
+    const y = Math.floor(e.clientY - rect.top);
 
     if (currentTool === 'stamp' && currentPattern) {
-        // Logic Tempel Pattern (Stamp)
+        // --- LOGIC STAMP (JIPLAK) ---
         const aspect = currentPattern.naturalWidth / currentPattern.naturalHeight;
-        const width = 100; // Lebar stamp
+        const width = 100;
         const height = width / aspect;
-        
         ctx.drawImage(currentPattern, x - width/2, y - height/2, width, height);
         isPainting = false;
+
+    } else if (currentTool === 'bucket') { 
+        // --- LOGIC CAT SIRAM (BARU) ---
+        // Panggil fungsi algoritma floodFill yang kita buat di langkah 1
+        floodFill(x, y, brushColor, ctx, canvas);
+        isPainting = false; // Cat siram sekali klik, tidak perlu drag
+
     } else {
-        // Logic Gambar Manual
+        // --- LOGIC KUAS MANUAL / PENGHAPUS ---
         isPainting = true;
         ctx.beginPath();
         ctx.moveTo(x, y);
