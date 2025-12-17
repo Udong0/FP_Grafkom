@@ -653,11 +653,36 @@ function setupCantingStationLogic() {
         document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
     };
     
-    window.saveBatik = () => {
+window.saveBatik = () => {
+        // 1. Siapkan Canvas Baru untuk Pola 4x4
+        const patternCanvas = document.createElement('canvas');
+        const w = canvas.width;
+        const h = canvas.height;
+        
+        // Ukuran 4x lipat
+        patternCanvas.width = w * 4;
+        patternCanvas.height = h * 4;
+        
+        const pCtx = patternCanvas.getContext('2d');
+
+        // 2. Isi background putih dulu (opsional, untuk keamanan)
+        pCtx.fillStyle = "white";
+        pCtx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+
+        // 3. Lakukan Looping 4x4 untuk menduplikasi gambar
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < 4; col++) {
+                // Gambar canvas asli ke posisi grid (col * lebar, row * tinggi)
+                pCtx.drawImage(canvas, col * w, row * h);
+            }
+        }
+
+        // 4. Download hasil Pattern 4x4
         const link = document.createElement('a');
         link.download = 'karya-batik-saya.png';
-        link.href = canvas.toDataURL();
+        link.href = patternCanvas.toDataURL(); // Ambil data dari patternCanvas, bukan canvas asli
         link.click();
+        
         alert("Karya batik berhasil disimpan!");
     };
 }
