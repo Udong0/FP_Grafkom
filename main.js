@@ -12,7 +12,7 @@ const direction = new THREE.Vector3();
 let prevTime = performance.now();
 
 // Konfigurasi Player
-const PLAYER_HEIGHT = 1.7;
+const PLAYER_HEIGHT = 3.0;
 const MOVEMENT_SPEED = 50.0;
 
 const textureLoader = new THREE.TextureLoader();
