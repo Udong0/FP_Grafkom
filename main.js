@@ -409,6 +409,84 @@ function createCantingTable(x, y, z) {
     scene.add(tableGroup);
 }
 
+// --- ALGORITMA FLOOD FILL (CAT SIRAM) ---
+
+// Helper: Ubah Hex (#RRGGBB) ke Array [r, g, b, 255]
+function hexToRgbArray(hex) {
+    if (!hex || hex.length < 7) return [0, 0, 0, 255]; 
+    const bigint = parseInt(hex.slice(1), 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return [r, g, b, 255];
+}
+
+function floodFill(startX, startY, fillColorHex, ctx, canvas) {
+    const w = canvas.width;
+    const h = canvas.height;
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const data = imageData.data; // Array pixel
+    const fillRgb = hexToRgbArray(fillColorHex);
+    
+    // Cek batas koordinat
+    if (startX < 0 || startX >= w || startY < 0 || startY >= h) return;
+
+    // Helper index array 1D
+    const getIndex = (x, y) => (y * w + x) * 4;
+
+    // Ambil warna target (warna pixel yang diklik)
+    const targetIndex = getIndex(startX, startY);
+    const targetR = data[targetIndex];
+    const targetG = data[targetIndex + 1];
+    const targetB = data[targetIndex + 2];
+    const targetA = data[targetIndex + 3];
+
+    // Jika warna yang diklik sudah sama dengan warna cat, berhenti
+    if (targetR === fillRgb[0] && targetG === fillRgb[1] && targetB === fillRgb[2] && targetA === fillRgb[3]) {
+        return;
+    }
+
+    // Siapkan antrian (Queue) untuk pemrosesan pixel
+    const queue = [[startX, startY]];
+    
+    // Penanda pixel yang sudah dicek agar tidak infinite loop
+    const visited = new Uint8Array(w * h); // 0 = belum, 1 = sudah
+
+    const matchTargetColor = (idx) => {
+        return data[idx] === targetR &&
+               data[idx + 1] === targetG &&
+               data[idx + 2] === targetB &&
+               data[idx + 3] === targetA;
+    };
+
+    while (queue.length > 0) {
+        const [x, y] = queue.pop();
+        const idx = getIndex(x, y);
+        const visitedIdx = y * w + x;
+
+        if (visited[visitedIdx]) continue;
+        
+        // Cek apakah warna pixel ini cocok dengan target
+        if (matchTargetColor(idx)) {
+            // Ganti warna pixel
+            data[idx] = fillRgb[0];
+            data[idx + 1] = fillRgb[1];
+            data[idx + 2] = fillRgb[2];
+            data[idx + 3] = fillRgb[3];
+            
+            visited[visitedIdx] = 1; // Tandai sudah diproses
+
+            // Masukkan tetangga (Kiri, Kanan, Atas, Bawah) ke antrian
+            if (x > 0) queue.push([x - 1, y]);
+            if (x < w - 1) queue.push([x + 1, y]);
+            if (y > 0) queue.push([x, y - 1]);
+            if (y < h - 1) queue.push([x, y + 1]);
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+}
+
 function createCeilingLamp(x, z) {
     const lampGroup = new THREE.Group();
     lampGroup.position.set(x, 18, z); 
@@ -599,37 +677,40 @@ function setupCantingStationLogic() {
     canvas = document.getElementById('batikCanvas');
     ctx = canvas.getContext('2d');
     
-    // Inisialisasi Canvas Putih
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // --- PERBAIKAN 1: Hapus Inisialisasi Putih Solid ---
+    // Jangan gunakan fillRect("white") karena akan menutup pola di belakang.
+    // Kita gunakan clearRect agar canvas bersih/transparan.
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Set tampilan awal canvas terlihat putih lewat CSS
+    canvas.style.backgroundColor = "white"; 
 
-    // Event Listeners untuk UI
+    // Variabel lokal untuk pola jiplak
+    let activePatternUrl = null;
+
+    // --- EVENT LISTENERS UI ---
     document.getElementById('close-canting').addEventListener('click', () => {
         document.getElementById("canting-station-ui").style.display = "none";
-        controls.lock();
+        controls.lock(); 
     });
 
     document.getElementById('brushSize').addEventListener('input', (e) => {
         brushSize = e.target.value;
     });
 
-    // Drawing Logic di Canvas 2D
+    // Event Mouse pada Canvas
     canvas.addEventListener('mousedown', startPaint);
     canvas.addEventListener('mousemove', paint);
     canvas.addEventListener('mouseup', () => isPainting = false);
     canvas.addEventListener('mouseleave', () => isPainting = false);
 
-    // Expose fungsi ke window agar bisa dipanggil HTML onclick
+    // --- FUNGSI GLOBAL ---
+
     window.setTool = (tool) => {
         currentTool = tool;
         document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-        
-        // Hapus seleksi pattern jika ganti ke brush
-        if (tool !== 'stamp') {
-            document.querySelectorAll('.pattern-grid img').forEach(img => img.classList.remove('selected'));
-            currentPattern = null;
-        }
+        const btn = document.querySelector(`button[onclick="setTool('${tool}')"]`);
+        if(btn) btn.classList.add('active');
     };
 
     window.setColor = (color) => {
@@ -637,46 +718,117 @@ function setupCantingStationLogic() {
     };
 
     window.clearCanvas = () => {
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Bersihkan pixel (jadi transparan lagi)
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Reset Overlay Jiplak
+        const bgDiv = document.getElementById('canvas-background');
+        bgDiv.style.backgroundImage = 'none';
+        activePatternUrl = null;
+        
+        // Kembalikan canvas jadi putih solid (tidak transparan)
+        canvas.style.backgroundColor = "white";
+        
+        document.querySelectorAll('.pattern-grid img').forEach(img => img.classList.remove('selected'));
     };
 
+    // --- PERBAIKAN 2: Logic Jiplak (Tracing Table) ---
     window.selectPattern = (imgElement) => {
-        currentTool = 'stamp';
-        currentPattern = imgElement;
-        
-        // Highlight visual
+        const bgDiv = document.getElementById('canvas-background');
+        const clickedUrl = imgElement.src;
+
         document.querySelectorAll('.pattern-grid img').forEach(img => img.classList.remove('selected'));
-        imgElement.classList.add('selected');
-        
-        // Update tombol tool
-        document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+
+        if (activePatternUrl === clickedUrl) {
+            // MATIKAN JIPLAK (Toggle Off)
+            bgDiv.style.backgroundImage = 'none';
+            canvas.style.backgroundColor = "white"; // Canvas kembali putih solid
+            activePatternUrl = null;
+        } else {
+            // HIDUPKAN JIPLAK (Toggle On)
+            
+            // A. Atur Gambar Pola di Background
+            bgDiv.style.backgroundImage = `url(${clickedUrl})`;
+            bgDiv.style.position = 'absolute';
+            bgDiv.style.top = '0';
+            bgDiv.style.left = '0';
+            bgDiv.style.width = '100%';
+            bgDiv.style.height = '100%';
+            
+            // PENTING: Pola taruh di BELAKANG Canvas
+            bgDiv.style.zIndex = '0'; 
+            
+            bgDiv.style.backgroundSize = 'cover'; 
+            bgDiv.style.backgroundPosition = 'center';
+            bgDiv.style.backgroundRepeat = 'no-repeat';
+
+            // B. Buat Canvas Semi-Transparan agar pola di belakang terlihat
+            canvas.style.backgroundColor = "rgba(255, 255, 255, 0.5)"; // 50% Transparan
+            
+            // C. Pastikan Canvas ada di DEPAN Pola
+            canvas.style.position = "relative";
+            canvas.style.zIndex = "1";
+
+            activePatternUrl = clickedUrl;
+            imgElement.classList.add('selected');
+
+            // Otomatis pindah ke Brush
+            if (currentTool !== 'brush') window.setTool('brush');
+        }
     };
     
+    // --- PERBAIKAN 3: Simpan Batik ---
     window.saveBatik = () => {
+        const patternCanvas = document.createElement('canvas');
+        const w = canvas.width;
+        const h = canvas.height;
+        
+        patternCanvas.width = w * 4;
+        patternCanvas.height = h * 4;
+        
+        const pCtx = patternCanvas.getContext('2d');
+
+        // 1. Isi Background Putih Dulu (Wajib, karena canvas asli transparan)
+        pCtx.fillStyle = "white";
+        pCtx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+
+        // 2. Gambar hasil cantingan user di atas putih tadi
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < 4; col++) {
+                pCtx.drawImage(canvas, col * w, row * h);
+            }
+        }
+
         const link = document.createElement('a');
-        link.download = 'karya-batik-saya.png';
-        link.href = canvas.toDataURL();
+        link.download = 'karya-batik-saya-full.png';
+        link.href = patternCanvas.toDataURL(); 
         link.click();
+        
         alert("Karya batik berhasil disimpan!");
     };
 }
 
 function startPaint(e) {
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = Math.floor(e.clientX - rect.left); // Gunakan Math.floor agar koordinat bulat
+    const y = Math.floor(e.clientY - rect.top);
 
     if (currentTool === 'stamp' && currentPattern) {
-        // Logic Tempel Pattern (Stamp)
+        // --- LOGIC STAMP (JIPLAK) ---
         const aspect = currentPattern.naturalWidth / currentPattern.naturalHeight;
-        const width = 100; // Lebar stamp
+        const width = 100;
         const height = width / aspect;
-        
         ctx.drawImage(currentPattern, x - width/2, y - height/2, width, height);
         isPainting = false;
+
+    } else if (currentTool === 'bucket') { 
+        // --- LOGIC CAT SIRAM (BARU) ---
+        // Panggil fungsi algoritma floodFill yang kita buat di langkah 1
+        floodFill(x, y, brushColor, ctx, canvas);
+        isPainting = false; // Cat siram sekali klik, tidak perlu drag
+
     } else {
-        // Logic Gambar Manual
+        // --- LOGIC KUAS MANUAL / PENGHAPUS ---
         isPainting = true;
         ctx.beginPath();
         ctx.moveTo(x, y);
